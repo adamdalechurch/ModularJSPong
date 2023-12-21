@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The game Pong</title>
+    <link href="css/style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>      
+</body>
+<script>
+    var pong;
+
+    window.onload = function(){
+        pong = new Pong();
+    }
+
+    function Pong(){
+        this.canvas = document.getElementById("gameCanvas");
+        this.context = this.canvas.getContext("2d");
+        this.context.fillStyle = "white";
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        this.ball = new Ball(this.canvas.width/2, this.canvas.height/2, 10, 10, 5, 5);
+        this.paddle = new Paddle(this.canvas.width - 30, 10, 10, 100, 10, 10,true);
+        this.paddle2 = new Paddle(10, 10, 10, 100, 10, 10);
+        // this.paddle2.x = this.canvas.width - this.paddle2.width - 10;
+        // this.paddle2.y = this.canvas.height/2 - this.paddle2.height/2;
+
+        this.draw = function(){
+            this.context.fillStyle = "black";
+            this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ball.draw(this.context);
+            this.paddle.draw(this.context);
+            this.paddle2.draw(this.context);
+        }
+
+        this.move = function(){
+            this.ball.move();
+            this.paddle.move(this.canvas);
+            this.paddle2.move(this.canvas);
+            this.ball.checkCollision(this.canvas);
+        }
+
+        this.update = function(){
+            this.draw();
+            this.move();
+        }
+
+        this.start = function(){
+            setInterval(this.update.bind(this), 1000/60);
+        }
+
+        this.start();
+    }
+
+    function Ball(x, y, width, height, dx, dy){
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.dx = dx;
+        this.dy = dy;
+
+        this.draw = function(context){
+            context.fillStyle = "white";
+            context.fillRect(this.x, this.y, this.width, this.height);
+        }
+
+        this.move = function(){
+            this.x += this.dx;
+            this.y += this.dy;
+        }
+
+        this.checkCollision = function(canvas){
+            // colide with boundaries
+            if(this.y < 0 || this.y + this.height > canvas.height){
+                this.dy = -this.dy;
+            }
+
+            if(this.x < 0 || this.x + this.width > canvas.width){
+                this.dx = -this.dx;
+            }
+
+            if(this.x < 0){
+                this.x = 0;
+            }else if(this.x + this.width > canvas.width){
+                this.x = canvas.width - this.width;
+            }
+
+            // collide with paddles
+            if(this.x < pong.paddle2.x + pong.paddle2.width && this.x + this.width > pong.paddle2.x && this.y < pong.paddle2.y + pong.paddle2.height && this.y + this.height > pong.paddle2.y){
+                this.dx = -this.dx;
+            }
+
+            if(this.x < pong.paddle.x + pong.paddle.width && this.x + this.width > pong.paddle.x && this.y < pong.paddle.y + pong.paddle.height && this.y + this.height > pong.paddle.y){
+                this.dx = -this.dx;
+            }
+        }
+    }
+
+    function Paddle(x, y, width, height, dx, dy, isNpc){
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.dx = dx;
+        this.dy = dy;
+
+        this.draw = function(context){
+            context.fillStyle = "white";
+            context.fillRect(this.x, this.y, this.width, this.height);
+        }
+
+        this.move = function(canvas){
+            if(isNpc){
+               // move toward ball:
+                if(pong.ball.y < this.y){
+                      this.y -= this.dy;
+                 }else if(pong.ball.y > this.y + this.height){
+                      this.y += this.dy;
+                 }
+                 
+            }else{
+                if(this.y < 0){
+                    this.y = 0;
+                }else if(this.y + this.height > canvas.height){
+                    this.y = canvas.height - this.height;
+                }
+            }
+        }
+    }
+
+window.addEventListener("keydown", function(event){
+    switch(event.keyCode){
+        case 38:
+            pong.paddle2.y -= pong.paddle2.dy;
+            break;
+        case 40:
+            pong.paddle2.y += pong.paddle2.dy;
+            break;
+        case 87:
+            pong.paddle.y -= pong.paddle.dy;
+            break;
+        case 83:
+            pong.paddle.y += pong.paddle.dy;
+            break;
+    }
+});
+
+</script>
+</html>
